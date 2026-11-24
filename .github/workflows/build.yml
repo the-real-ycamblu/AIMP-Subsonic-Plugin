@@ -7,9 +7,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -24,8 +28,8 @@ jobs:
       - name: Cache AIMP SDK
         uses: actions/cache@v4
         with:
-          path: build/_deps
-          key: aimp-sdk-v540
+          path: build/_deps/aimp_sdk_v540.zip
+          key: aimp-sdk-v540-${{ hashFiles('CMakeLists.txt') }}
 
       - name: Configure
         # No -G: let CMake pick the newest Visual Studio on the runner image.
@@ -39,9 +43,10 @@ jobs:
 
       - name: Run tests
         run: |
-          build\Release\aimp_subsonic_node_tests.exe
-          build\Release\aimp_subsonic_security_tests.exe
-          build\Release\aimp_subsonic_json_tests.exe
+          foreach ($test in @('node', 'security', 'json')) {
+            & ".\build\Release\aimp_subsonic_${test}_tests.exe"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
 
       - name: Stage artifact
         run: |
@@ -54,11 +59,13 @@ jobs:
         with:
           name: aimp_subsonic-${{ matrix.arch }}
           path: stage/
+          if-no-files-found: error
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
@@ -77,5 +84,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/*.zip
+          fail_on_unmatched_files: true
           draft: true
           generate_release_notes: true

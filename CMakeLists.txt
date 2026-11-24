@@ -34,13 +34,13 @@ if((NOT AIMP_SDK_DIR OR NOT EXISTS "${AIMP_SDK_DIR}/Sources/Cpp/apiPlugin.h") AN
   set(_aimp_sdk_extract "${CMAKE_BINARY_DIR}/_deps/aimp_sdk_v540")
   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/_deps")
   message(STATUS "Downloading AIMP SDK v5.40...")
-  # aimp.ru republishes the SDK zip in place from time to time; when the hash
-  # check fails with a consistent "actual" value across machines, verify the
-  # archive still contains Sources/Cpp/apiPlugin.h and update the pin.
+  # aimp.ru republishes the SDK zip in place. Verify any new checksum against
+  # the official SDK download page before updating this pin.
   file(DOWNLOAD
     "https://aimp.ru/?do=download.file&id=15"
     "${_aimp_sdk_zip}"
-    EXPECTED_HASH SHA256=7f880c935fccd486b8fe12fa452617e630411a5adfdcac7b07d9a9bdaa5a2b63
+    EXPECTED_HASH SHA256=5ecf7225f522a4c2de45b7b958d0edb4363b218caccfd141289bd5e675bb50d1
+    TLS_VERIFY ON
     SHOW_PROGRESS
   )
   file(ARCHIVE_EXTRACT INPUT "${_aimp_sdk_zip}" DESTINATION "${_aimp_sdk_extract}")
