@@ -103,9 +103,13 @@ set_target_properties(aimp_subsonic PROPERTIES
 )
 
 if(MSVC)
+  # Release ZIPs ship only the plugin DLL, without the Visual C++ Redistributable.
+  set_property(TARGET aimp_subsonic PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
   target_compile_options(aimp_subsonic PRIVATE /W4 /permissive- /EHsc /utf-8)
   target_compile_options(aimp_subsonic PRIVATE /wd4100)
 endif()
+
+add_executable(aimp_subsonic_load_tests EXCLUDE_FROM_ALL tests/PluginLoadTests.cpp)
 
 add_executable(aimp_subsonic_node_tests EXCLUDE_FROM_ALL
   tests/SubsonicLibraryNodesTests.cpp

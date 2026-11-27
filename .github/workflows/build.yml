@@ -39,10 +39,13 @@ jobs:
         run: cmake --build build --config Release --target aimp_subsonic
 
       - name: Build tests
-        run: cmake --build build --config Release --target aimp_subsonic_node_tests aimp_subsonic_security_tests aimp_subsonic_json_tests
+        run: cmake --build build --config Release --target aimp_subsonic_load_tests aimp_subsonic_node_tests aimp_subsonic_security_tests aimp_subsonic_json_tests
 
       - name: Run tests
         run: |
+          $plugin = (Resolve-Path .\build\Release\aimp_subsonic.dll).Path
+          & .\build\Release\aimp_subsonic_load_tests.exe $plugin
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           foreach ($test in @('node', 'security', 'json')) {
             & ".\build\Release\aimp_subsonic_${test}_tests.exe"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
